@@ -116,4 +116,10 @@ function exportPdf(){
   doc.save(`${(state.projectName||'houseplanner').replace(/[^a-z0-9а-я_-]+/gi,'-')}.pdf`);
 }
 
-initNav();bindForms();renderOpeningEditor();renderAll();
+function loadPlannerModule(){
+  if(document.querySelector('link[data-houseplanner-2d]'))return;
+  const css=document.createElement('link');css.rel='stylesheet';css.href='planner.css';css.dataset.houseplanner2d='true';document.head.appendChild(css);
+  const script=document.createElement('script');script.src='planner.js';script.defer=true;document.body.appendChild(script);
+}
+
+initNav();bindForms();renderOpeningEditor();renderAll();loadPlannerModule();
