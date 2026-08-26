@@ -119,7 +119,7 @@ function exportPdf(){
 function loadPlannerModule(){
   if(document.querySelector('link[data-houseplanner-2d]'))return;
   const css=document.createElement('link');css.rel='stylesheet';css.href='planner.css';css.dataset.houseplanner2d='true';document.head.appendChild(css);
-  const script=document.createElement('script');script.src='planner.js';script.defer=true;document.body.appendChild(script);
+  const script=document.createElement('script');script.src='planner.js';script.onload=()=>{const geometry=document.createElement('script');geometry.src='planner-geometry.js';document.body.appendChild(geometry)};document.body.appendChild(script);
 }
 
 initNav();bindForms();renderOpeningEditor();renderAll();loadPlannerModule();
