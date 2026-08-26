@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#111827" />
+  <title>HousePlanner - Планер за ремонт и интериор</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">HOUSEPLANNER</p>
+      <h1>Планирай имота и ремонта на едно място</h1>
+      <p class="subtitle">Помещения, стени, подове, боя, материали и PDF отчет.</p>
+    </div>
+    <div class="header-actions">
+      <button id="saveProjectBtn" class="btn secondary">Запази проекта</button>
+      <button id="exportPdfBtn" class="btn primary">Изтегли PDF</button>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <aside class="sidebar">
+      <button class="nav-link active" data-view="dashboard">Обобщение</button>
+      <button class="nav-link" data-view="rooms">План на имота</button>
+      <button class="nav-link" data-view="walls">Стени и отвори</button>
+      <button class="nav-link" data-view="floor">Подова площ</button>
+      <button class="nav-link" data-view="paint">Калкулатор за боя</button>
+      <button class="nav-link" data-view="materials">Материали</button>
+      <button class="nav-link" data-view="budget">Бюджет</button>
+      <div class="sidebar-note">
+        <strong>Мерни единици</strong>
+        <span>Всички размери се въвеждат в сантиметри. Площите се изчисляват автоматично в m².</span>
+      </div>
+    </aside>
+
+    <section class="workspace">
+      <section id="dashboard" class="view active-view">
+        <div class="section-heading">
+          <div><p class="eyebrow">ПРОЕКТ</p><h2>Обобщение</h2></div>
+          <input id="projectName" class="project-name" value="Моят ремонт" aria-label="Име на проекта" />
+        </div>
+        <div class="stats-grid">
+          <article class="stat-card"><span>Помещения</span><strong id="statRooms">0</strong></article>
+          <article class="stat-card"><span>Подова площ</span><strong id="statFloor">0.00 m²</strong></article>
+          <article class="stat-card"><span>Нетна площ стени</span><strong id="statWalls">0.00 m²</strong></article>
+          <article class="stat-card"><span>Ориентировъчен бюджет</span><strong id="statBudget">0.00 лв.</strong></article>
+        </div>
+        <div class="dashboard-grid">
+          <article class="panel">
+            <div class="panel-header"><h3>Схема на имота</h3><span>Автоматичен преглед</span></div>
+            <div id="propertyPreview" class="property-preview empty-state">Добави помещение, за да се появи схема.</div>
+          </article>
+          <article class="panel">
+            <div class="panel-header"><h3>Следващи дейности</h3><span>Работен списък</span></div>
+            <div id="activitySummary" class="summary-list"></div>
+          </article>
+        </div>
+      </section>
+
+      <section id="rooms" class="view">
+        <div class="section-heading"><div><p class="eyebrow">ИМОТ</p><h2>План на помещенията</h2></div></div>
+        <div class="two-col">
+          <form id="roomForm" class="panel form-panel">
+            <h3>Добави помещение</h3>
+            <label>Име<input id="roomName" required placeholder="Напр. Хол" /></label>
+            <div class="field-grid">
+              <label>Ширина (cm)<input id="roomWidth" required type="number" min="1" step="0.1" /></label>
+              <label>Дължина (cm)<input id="roomLength" required type="number" min="1" step="0.1" /></label>
+              <label>Височина (cm)<input id="roomHeight" required type="number" min="1" step="0.1" value="260" /></label>
+              <label>Тип<select id="roomType"><option>Стая</option><option>Кухня</option><option>Баня</option><option>Коридор</option><option>Мазе</option><option>Гараж</option><option>Друго</option></select></label>
+            </div>
+            <button class="btn primary" type="submit">Добави помещение</button>
+          </form>
+          <article class="panel">
+            <div class="panel-header"><h3>Схема</h3><span>Пропорционални блокове</span></div>
+            <div id="roomPlan" class="room-plan empty-state">Няма помещения.</div>
+          </article>
+        </div>
+        <article class="panel table-panel"><div class="panel-header"><h3>Помещения</h3><span id="roomCountLabel">0 общо</span></div><div class="table-wrap"><table><thead><tr><th>Име</th><th>Тип</th><th>Размери</th><th>Под</th><th>Периметър</th><th></th></tr></thead><tbody id="roomsTable"></tbody></table></div></article>
+      </section>
+
+      <section id="walls" class="view">
+        <div class="section-heading"><div><p class="eyebrow">ИЗМЕРВАНЕ</p><h2>Стени, врати и прозорци</h2></div></div>
+        <div class="two-col">
+          <form id="wallForm" class="panel form-panel">
+            <h3>Добави стена</h3>
+            <label>Помещение<select id="wallRoom"></select></label>
+            <label>Име на стената<input id="wallName" required placeholder="Напр. Северна стена" /></label>
+            <div class="field-grid">
+              <label>Ширина (cm)<input id="wallWidth" required type="number" min="1" step="0.1" /></label>
+              <label>Височина (cm)<input id="wallHeight" required type="number" min="1" step="0.1" value="260" /></label>
+            </div>
+            <div class="subsection-title"><h4>Отвори</h4><button id="addOpeningBtn" type="button" class="btn tiny">+ врата / прозорец</button></div>
+            <div id="openingEditor"></div>
+            <button class="btn primary" type="submit">Добави стена</button>
+          </form>
+          <article class="panel wall-visual-panel">
+            <div class="panel-header"><h3>Схема на стената</h3><span>Нетната площ изключва отворите</span></div>
+            <div id="wallPreview" class="wall-preview empty-state">Въведи размери на стена.</div>
+          </article>
+        </div>
+        <article class="panel table-panel"><div class="panel-header"><h3>Записани стени</h3><span id="wallAreaTotal">0.00 m² нето</span></div><div class="table-wrap"><table><thead><tr><th>Помещение</th><th>Стена</th><th>Брутна площ</th><th>Отвори</th><th>Нетна площ</th><th></th></tr></thead><tbody id="wallsTable"></tbody></table></div></article>
+      </section>
+
+      <section id="floor" class="view">
+        <div class="section-heading"><div><p class="eyebrow">ПОД</p><h2>Изчисляване на подова площ</h2></div></div>
+        <div class="two-col">
+          <form id="floorForm" class="panel form-panel">
+            <h3>Правоъгълна зона</h3>
+            <label>Наименование<input id="floorName" placeholder="Напр. Под - кухня" required /></label>
+            <div class="field-grid">
+              <label>Ширина (cm)<input id="floorWidth" type="number" min="1" step="0.1" required /></label>
+              <label>Дължина (cm)<input id="floorLength" type="number" min="1" step="0.1" required /></label>
+            </div>
+            <label>Резерв / фира (%)<input id="floorWaste" type="number" min="0" step="0.1" value="10" /></label>
+            <div class="live-result"><span>Чиста площ</span><strong id="floorLiveArea">0.00 m²</strong><small id="floorLiveWaste">С резерв: 0.00 m²</small></div>
+            <button class="btn primary" type="submit">Добави зона</button>
+          </form>
+          <article class="panel">
+            <h3>Полезно за настилки</h3>
+            <div class="tip-list">
+              <div><strong>Ламинат / паркет</strong><span>Обикновено добавяй 7-10% резерв.</span></div>
+              <div><strong>Плочки</strong><span>Добавяй 10-15% при диагонално редене или много рязане.</span></div>
+              <div><strong>Первази</strong><span>Използвай периметъра на помещението и извади ширината на вратите.</span></div>
+            </div>
+          </article>
+        </div>
+        <article class="panel table-panel"><div class="panel-header"><h3>Подови зони</h3><span id="floorAreaTotal">0.00 m²</span></div><div class="table-wrap"><table><thead><tr><th>Зона</th><th>Размери</th><th>Площ</th><th>Резерв</th><th>За покупка</th><th></th></tr></thead><tbody id="floorTable"></tbody></table></div></article>
+      </section>
+
+      <section id="paint" class="view">
+        <div class="section-heading"><div><p class="eyebrow">БОЯДИСВАНЕ</p><h2>Калкулатор за боя</h2></div></div>
+        <div class="two-col">
+          <form id="paintForm" class="panel form-panel">
+            <h3>Покритие</h3>
+            <label>Площ за боядисване (m²)<input id="paintArea" type="number" min="0" step="0.01" /></label>
+            <button id="useWallsAreaBtn" class="btn secondary full" type="button">Използвай общата нетна площ на стените</button>
+            <div class="field-grid">
+              <label>Покривност (m²/L)<input id="paintCoverage" type="number" min="0.1" step="0.1" value="10" /></label>
+              <label>Брой ръце<input id="paintCoats" type="number" min="1" step="1" value="2" /></label>
+              <label>Резерв (%)<input id="paintWaste" type="number" min="0" step="0.1" value="10" /></label>
+              <label>Разфасовка (L)<input id="paintCanSize" type="number" min="0.1" step="0.1" value="5" /></label>
+            </div>
+            <label>Цена на разфасовка (лв.)<input id="paintCanPrice" type="number" min="0" step="0.01" value="45" /></label>
+          </form>
+          <article class="panel result-panel">
+            <p class="eyebrow">РЕЗУЛТАТ</p>
+            <strong id="paintLiters" class="big-number">0.00 L</strong>
+            <span id="paintCans">0 разфасовки</span>
+            <div class="result-breakdown"><div><span>Базово количество</span><strong id="paintBase">0.00 L</strong></div><div><span>С резерв</span><strong id="paintWithWaste">0.00 L</strong></div><div><span>Ориентировъчна цена</span><strong id="paintCost">0.00 лв.</strong></div></div>
+            <button id="addPaintMaterialsBtn" class="btn primary full" type="button">Добави към материалите</button>
+          </article>
+        </div>
+      </section>
+
+      <section id="materials" class="view">
+        <div class="section-heading"><div><p class="eyebrow">РЕМОНТ</p><h2>Списък с материали</h2></div></div>
+        <div class="two-col">
+          <form id="materialForm" class="panel form-panel">
+            <h3>Добави материал</h3>
+            <div class="field-grid">
+              <label>Дейност<select id="materialActivity"><option>Боядисване</option><option>Подова настилка</option><option>Шпакловка</option><option>Гипсокартон</option><option>Електро</option><option>ВиК</option><option>Друго</option></select></label>
+              <label>Материал<input id="materialName" required placeholder="Напр. Грунд" /></label>
+              <label>Количество<input id="materialQty" required type="number" min="0" step="0.01" /></label>
+              <label>Единица<select id="materialUnit"><option>бр.</option><option>L</option><option>kg</option><option>m</option><option>m²</option><option>оп.</option></select></label>
+              <label>Ед. цена (лв.)<input id="materialPrice" type="number" min="0" step="0.01" value="0" /></label>
+            </div>
+            <label>Бележка<textarea id="materialNote" rows="3" placeholder="Марка, цвят, магазин..."></textarea></label>
+            <button class="btn primary" type="submit">Добави материал</button>
+          </form>
+          <article class="panel">
+            <h3>Бързи шаблони</h3>
+            <div class="template-grid">
+              <button class="template-btn" data-template="painting"><strong>Боядисване</strong><span>Боя, грунд, валяк, четки, лента, фолио</span></button>
+              <button class="template-btn" data-template="flooring"><strong>Ламинат</strong><span>Настилка, подложка, первази, преходни лайсни</span></button>
+              <button class="template-btn" data-template="plaster"><strong>Шпакловка</strong><span>Грунд, шпакловка, мрежа, шкурка</span></button>
+              <button class="template-btn" data-template="drywall"><strong>Гипсокартон</strong><span>Плоскости, профили, винтове, лента, фугопълнител</span></button>
+            </div>
+          </article>
+        </div>
+        <article class="panel table-panel"><div class="panel-header"><h3>Материали</h3><span id="materialTotal">0.00 лв.</span></div><div class="table-wrap"><table><thead><tr><th>Дейност</th><th>Материал</th><th>Количество</th><th>Ед. цена</th><th>Общо</th><th>Бележка</th><th></th></tr></thead><tbody id="materialsTable"></tbody></table></div></article>
+      </section>
+
+      <section id="budget" class="view">
+        <div class="section-heading"><div><p class="eyebrow">ФИНАНСИ</p><h2>Бюджет за ремонта</h2></div></div>
+        <div class="stats-grid">
+          <article class="stat-card"><span>Материали</span><strong id="budgetMaterials">0.00 лв.</strong></article>
+          <article class="stat-card"><span>Допълнителни разходи</span><strong id="budgetExtras">0.00 лв.</strong></article>
+          <article class="stat-card"><span>Общо</span><strong id="budgetGrand">0.00 лв.</strong></article>
+          <article class="stat-card"><span>Резерв</span><strong id="budgetReserveAmount">0.00 лв.</strong></article>
+        </div>
+        <div class="two-col">
+          <form id="extraCostForm" class="panel form-panel">
+            <h3>Друг разход</h3>
+            <label>Описание<input id="extraName" required placeholder="Напр. Майстор - боядисване" /></label>
+            <label>Стойност (лв.)<input id="extraAmount" required type="number" min="0" step="0.01" /></label>
+            <button class="btn primary" type="submit">Добави разход</button>
+          </form>
+          <article class="panel form-panel"><h3>Резерв на бюджета</h3><label>Резерв (%)<input id="budgetReserve" type="number" min="0" step="0.1" value="10" /></label><div class="live-result"><span>Препоръчителен бюджет с резерв</span><strong id="budgetWithReserve">0.00 лв.</strong></div></article>
+        </div>
+        <article class="panel table-panel"><div class="panel-header"><h3>Допълнителни разходи</h3></div><div class="table-wrap"><table><thead><tr><th>Описание</th><th>Стойност</th><th></th></tr></thead><tbody id="extrasTable"></tbody></table></div></article>
+      </section>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.4/jspdf.plugin.autotable.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
