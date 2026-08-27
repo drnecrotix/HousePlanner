@@ -44,7 +44,11 @@
     const list=document.getElementById('plannerGeometryConnections');
     const cs=connections();
     if(list){
-      list.innerHTML=cs.length?cs.map(c=>`<div class="connection-chip"><strong>${escapeHtml(c.a.name)} ↔ ${escapeHtml(c.b.name)}</strong><span>${sideLabel[c.aSide]} / ${sideLabel[c.bSide]} · ${c.length.toFixed(0)} cm обща стена</span></div>`).join(''):'<span class="muted">Няма прилепени общи стени.</span>';
+      const html=cs.length?cs.map(c=>`<div class="connection-chip"><strong>${escapeHtml(c.a.name)} ↔ ${escapeHtml(c.b.name)}</strong><span>${sideLabel[c.aSide]} / ${sideLabel[c.bSide]} · ${c.length.toFixed(0)} cm обща стена</span></div>`).join(''):'<span class="muted">Няма прилепени общи стени.</span>';
+      if(list.dataset.rendered!==html){
+        list.innerHTML=html;
+        list.dataset.rendered=html;
+      }
     }
     document.querySelectorAll('.plan-room').forEach(el=>{
       const id=el.dataset.roomId;
@@ -134,8 +138,15 @@
   });
   document.addEventListener('pointercancel',()=>{activeRoomId=null;clearGuides()});
 
-  const observer=new MutationObserver(()=>refreshUI());
-  observer.observe(document.body,{childList:true,subtree:true});
   injectStyles();
-  refreshUI();
+  if(document.getElementById('planner2d')){
+    refreshUI();
+  }else{
+    const observer=new MutationObserver(()=>{
+      if(!document.getElementById('planner2d'))return;
+      observer.disconnect();
+      refreshUI();
+    });
+    observer.observe(document.body,{childList:true,subtree:true});
+  }
 })();
